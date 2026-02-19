@@ -9,9 +9,9 @@ function levelFromPoints(points: number): number {
   return Math.floor(points / 100) + 1;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -42,7 +42,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const body = await request.json();
     const parsed = profileUpdateSchema.safeParse(body);
     if (!parsed.success) {

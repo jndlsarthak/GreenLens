@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuthStore } from "@/store/authStore"
 import { Separator } from "@/components/ui/separator"
+import { authApi } from "@/lib/api"
+import { toast } from "sonner"
 
 const formSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }),
@@ -34,20 +36,26 @@ export default function LoginPage() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true)
-
-        // Simulate API call
-        setTimeout(() => {
-            login({
-                id: "1",
-                name: "Eco User",
-                email: values.email,
-                points: 1250,
-                level: 3,
-                avatar: "/placeholder-user.jpg"
-            })
-            setIsLoading(false)
+        try {
+            const res = await authApi.login({ email: values.email, password: values.password })
+            login(
+                {
+                    id: res.user.id,
+                    name: res.user.name ?? "User",
+                    email: res.user.email,
+                    points: res.user.points,
+                    level: res.user.level,
+                    streakDays: res.user.streakDays,
+                },
+                res.token
+            )
             router.push("/")
-        }, 1000)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Login failed"
+            toast.error(message)
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (

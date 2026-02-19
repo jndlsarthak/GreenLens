@@ -38,7 +38,7 @@ export function Sidebar() {
                 <div className="flex h-14 items-center border-b px-4 lg:h-[60px] justify-between">
                     <Link href="/" className="flex items-center gap-2 font-semibold">
                         <Leaf className="h-6 w-6 text-eco-green" />
-                        <span className={cn("transition-opacity", isSidebarOpen ? "opacity-100" : "opacity-0 hidden")}>EcoLearn</span>
+                        <span className={cn("transition-opacity", isSidebarOpen ? "opacity-100" : "opacity-0 hidden")}>GreenLens</span>
                     </Link>
                 </div>
                 <div className="flex-1 overflow-auto py-2"> {/* Replace ScrollArea with div for now */}

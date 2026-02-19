@@ -5,7 +5,7 @@ import { errorResponse, getStatusCode } from '@/lib/errors';
 
 export async function GET() {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const allBadges = await prisma.badge.findMany({
       orderBy: { displayOrder: 'asc' },
       select: {

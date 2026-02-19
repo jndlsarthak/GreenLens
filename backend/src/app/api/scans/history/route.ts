@@ -5,7 +5,7 @@ import { errorResponse, getStatusCode } from '@/lib/errors';
 
 export async function GET(request: Request) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '20', 10), 100);
     const offset = parseInt(searchParams.get('offset') ?? '0', 10);

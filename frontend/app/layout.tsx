@@ -9,7 +9,7 @@ import { Toaster } from "@/components/ui/sonner"
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'EcoLearn',
+  title: 'GreenLens',
   description: 'AI-powered environmental impact assistant',
 }
 
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.className, "min-h-screen bg-background text-foreground antialiased")}>
         <QueryProvider>
           <ThemeProvider

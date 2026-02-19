@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const body = await request.json();
     const parsed = scanSchema.safeParse(body);
     if (!parsed.success) {
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '20', 10), 100);
     const offset = parseInt(searchParams.get('offset') ?? '0', 10);

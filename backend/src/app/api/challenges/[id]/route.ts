@@ -11,7 +11,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const { id: challengeId } = await params;
     if (!challengeId) {
       throw new ApiError('Challenge ID required', ERROR_CODES.VALIDATION_ERROR, 400);

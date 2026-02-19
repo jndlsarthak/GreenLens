@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { Sidebar } from "@/components/shared/Sidebar"
 import { BottomNav } from "@/components/shared/BottomNav"
 import { Button } from "@/components/ui/button"
@@ -20,6 +21,12 @@ export default function DashboardLayout({
     const toggleSidebar = useUIStore(state => state.toggleSidebar)
     const { user, logout } = useAuthStore()
     const router = useRouter()
+
+    useEffect(() => {
+        if (user === null) {
+            router.replace("/onboarding")
+        }
+    }, [user, router])
 
     const handleLogout = () => {
         logout()

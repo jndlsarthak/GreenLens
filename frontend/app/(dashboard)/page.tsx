@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { CameraView } from "@/components/shared/CameraView"
 import { ProductCard } from "@/components/shared/ProductCard"
@@ -7,33 +8,50 @@ import { useScanStore } from "@/store/scanStore"
 import { useAuthStore } from "@/store/authStore"
 import { Button } from "@/components/ui/button"
 import { ChevronRight, ArrowRight } from "lucide-react"
+import { productsApi, scansApi } from "@/lib/api"
+import { toast } from "sonner"
 
 export default function HomePage() {
     const router = useRouter()
-    const { addPoints } = useAuthStore()
+    const { addPoints, token } = useAuthStore()
     const { recentScans, addScan, setCurrentScan } = useScanStore()
+    const [scanning, setScanning] = useState(false)
 
-    const handleScan = (barcode: string) => {
-        // Mock finding a product
-        const mockProduct = {
-            id: Math.random().toString(36).substring(7),
-            barcode: barcode,
-            name: "Organic Almond Milk",
-            brand: "Nature's Promise",
-            image: "", // Use generic or leave empty
-            ecoScore: "B" as const,
-            carbonFootprint: 0.8,
-            date: new Date().toISOString(),
-            pointsEarned: 10
+    const handleScan = async (barcode: string) => {
+        if (!token) {
+            toast.error("Please sign in to scan products")
+            return
         }
-
-        // Add to store
-        addScan(mockProduct)
-        setCurrentScan(mockProduct)
-        addPoints(10)
-
-        // Navigate to results
-        router.push(`/scan-result?barcode=${barcode}`)
+        setScanning(true)
+        try {
+            const product = await productsApi.lookup(barcode)
+            const recorded = await scansApi(token).record({
+                barcode,
+                productId: product.id,
+                productName: product.name,
+                carbonFootprint: product.carbonFootprint,
+            })
+            const scanResult = {
+                id: recorded.id,
+                barcode: product.barcode,
+                name: product.name,
+                brand: product.brand ?? "",
+                image: product.imageUrl ?? "",
+                ecoScore: (product.ecoScore ?? "C") as "A" | "B" | "C" | "D" | "F",
+                carbonFootprint: product.carbonFootprint,
+                date: recorded.createdAt,
+                pointsEarned: recorded.pointsEarned,
+            }
+            addScan(scanResult)
+            setCurrentScan(scanResult)
+            addPoints(recorded.pointsEarned)
+            router.push(`/scan-result?barcode=${barcode}`)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Scan failed"
+            toast.error(message)
+        } finally {
+            setScanning(false)
+        }
     }
 
     return (

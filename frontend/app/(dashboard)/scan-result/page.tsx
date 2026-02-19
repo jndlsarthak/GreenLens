@@ -14,28 +14,91 @@ import { PointsAnimation } from "@/components/shared/PointsBadge"
 import { ChallengeCard } from "@/components/shared/ChallengeCard"
 import Image from "next/image"
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
+import { productsApi } from "@/lib/api"
+import { getCarbonComparisons, getEcoTip } from "@/lib/comparisons"
+import { cn } from "@/lib/utils"
+
+const fallbackProduct = {
+    id: "fallback",
+    barcode: "000",
+    name: "Unknown Product",
+    brand: "",
+    image: "",
+    ecoScore: "C" as const,
+    carbonFootprint: 0,
+    date: new Date().toISOString(),
+    pointsEarned: 0
+}
+
+interface Alternative {
+    id: string
+    barcode: string
+    name: string
+    brand: string | null
+    imageUrl: string | null
+    carbonFootprint: number
+    ecoScore: string
+    carbonReduction: number
+}
 
 function ScanResultContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
-    const barcode = searchParams.get('barcode')
-    const { currentScan, addScan } = useScanStore()
+    const barcode = searchParams.get("barcode")
+    const { currentScan } = useScanStore()
     const { challenges } = useChallengeStore()
     const [showPoints, setShowPoints] = useState(false)
+    const [product, setProduct] = useState(currentScan ?? fallbackProduct)
+    const [loading, setLoading] = useState(!currentScan && !!barcode)
+    const [alternatives, setAlternatives] = useState<Alternative[]>([])
+    const [loadingAlternatives, setLoadingAlternatives] = useState(false)
 
-    // Fallback if currentScan is lost or direct access
-    // Ideally fetch from API by barcode
-    const product = currentScan || {
-        id: "mock",
-        barcode: barcode || "000",
-        name: "Unknown Product",
-        brand: "Brand",
-        image: "",
-        ecoScore: "C" as const,
-        carbonFootprint: 2.5,
-        date: new Date().toISOString(),
-        pointsEarned: 0
-    }
+    useEffect(() => {
+        if (currentScan) {
+            setProduct(currentScan)
+            if (currentScan.barcode && currentScan.barcode !== "000") {
+                setLoadingAlternatives(true)
+                productsApi.alternatives(currentScan.barcode)
+                    .then((res) => setAlternatives(res.alternatives))
+                    .catch(() => setAlternatives([]))
+                    .finally(() => setLoadingAlternatives(false))
+            }
+            return
+        }
+        if (!barcode) {
+            setProduct({ ...fallbackProduct, barcode: "000" })
+            return
+        }
+        let cancelled = false
+        productsApi
+            .lookup(barcode)
+            .then((p) => {
+                if (!cancelled) {
+                    setProduct({
+                        id: p.id,
+                        barcode: p.barcode,
+                        name: p.name,
+                        brand: p.brand ?? "",
+                        image: p.imageUrl ?? "",
+                        ecoScore: (p.ecoScore ?? "C") as "A" | "B" | "C" | "D" | "F",
+                        carbonFootprint: p.carbonFootprint,
+                        date: new Date().toISOString(),
+                        pointsEarned: 0
+                    })
+                    // Fetch alternatives if product has high carbon
+                    if (["C", "D", "F"].includes(p.ecoScore)) {
+                        setLoadingAlternatives(true)
+                        productsApi.alternatives(p.barcode)
+                            .then((res) => setAlternatives(res.alternatives))
+                            .catch(() => setAlternatives([]))
+                            .finally(() => setLoadingAlternatives(false))
+                    }
+                }
+            })
+            .catch(() => setProduct({ ...fallbackProduct, barcode }))
+            .finally(() => { if (!cancelled) setLoading(false) })
+        return () => { cancelled = true }
+    }, [barcode, currentScan])
 
     useEffect(() => {
         if (product.pointsEarned > 0) {
@@ -50,6 +113,16 @@ function ScanResultContent() {
     }, [product.pointsEarned])
 
     const suggestedChallenge = challenges.find(c => c.status === 'available')
+    const comparisons = getCarbonComparisons(product.carbonFootprint)
+    const ecoTip = getEcoTip(product.ecoScore, product.carbonFootprint)
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <LoadingSpinner />
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full relative">
@@ -88,24 +161,49 @@ function ScanResultContent() {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base">Carbon Footprint</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-col items-center">
+                    <CardContent className="flex flex-col items-center gap-3">
                         <ImpactMeter value={product.carbonFootprint} max={10} />
-                        <p className="text-sm text-center mt-2 text-muted-foreground">
-                            Equivalent to driving <span className="font-bold text-foreground">{(product.carbonFootprint * 2.5).toFixed(1)} miles</span>
-                        </p>
+                        <div className="space-y-1 text-sm text-center">
+                            {comparisons.map((comp, i) => (
+                                <p key={i} className="text-muted-foreground">
+                                    {comp.icon} Equivalent to {comp.label.toLowerCase()} for{" "}
+                                    <span className="font-bold text-foreground">{comp.value}</span>
+                                </p>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
 
                 <div className="space-y-4">
-                    <Card className="bg-eco-green/10 border-eco-green/20">
+                    <Card className={cn(
+                        "border",
+                        ecoTip.variant === "good" && "bg-eco-green/10 border-eco-green/20",
+                        ecoTip.variant === "warning" && "bg-yellow-50 border-yellow-200",
+                        ecoTip.variant === "info" && "bg-blue-50 border-blue-200"
+                    )}>
                         <CardContent className="p-4 flex items-center gap-4">
-                            <div className="bg-eco-green text-white p-2 rounded-full">
+                            <div className={cn(
+                                "text-white p-2 rounded-full",
+                                ecoTip.variant === "good" && "bg-eco-green",
+                                ecoTip.variant === "warning" && "bg-yellow-500",
+                                ecoTip.variant === "info" && "bg-blue-500"
+                            )}>
                                 <Leaf className="h-6 w-6" />
                             </div>
                             <div>
-                                <h4 className="font-semibold text-eco-green-900">Eco Tip</h4>
-                                <p className="text-xs text-eco-green-800">
-                                    This product has a low carbon footprint! Great choice.
+                                <h4 className={cn(
+                                    "font-semibold",
+                                    ecoTip.variant === "good" && "text-eco-green-900",
+                                    ecoTip.variant === "warning" && "text-yellow-900",
+                                    ecoTip.variant === "info" && "text-blue-900"
+                                )}>Eco Tip</h4>
+                                <p className={cn(
+                                    "text-xs",
+                                    ecoTip.variant === "good" && "text-eco-green-800",
+                                    ecoTip.variant === "warning" && "text-yellow-800",
+                                    ecoTip.variant === "info" && "text-blue-800"
+                                )}>
+                                    {ecoTip.message}
                                 </p>
                             </div>
                         </CardContent>
@@ -121,24 +219,48 @@ function ScanResultContent() {
             </div>
 
             {/* Better Alternatives */}
-            <div className="space-y-3">
-                <h3 className="font-semibold">Better Alternatives</h3>
-                <div className="grid grid-cols-2 gap-4">
-                    {/* Mock Alternatives */}
-                    {[1, 2].map((i) => (
-                        <Card key={i} className="p-3">
-                            <div className="flex gap-3">
-                                <div className="w-12 h-12 bg-muted rounded shrink-0"></div>
-                                <div className="min-w-0">
-                                    <h4 className="text-sm font-medium truncate">Eco Alternative {i}</h4>
-                                    <p className="text-xs text-muted-foreground">Brand {i}</p>
-                                    <p className="text-xs text-eco-green font-bold mt-1">-30% CO2</p>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
+            {(alternatives.length > 0 || loadingAlternatives) && (
+                <div className="space-y-3">
+                    <h3 className="font-semibold">Better Alternatives</h3>
+                    {loadingAlternatives ? (
+                        <div className="flex justify-center py-4">
+                            <LoadingSpinner />
+                        </div>
+                    ) : alternatives.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {alternatives.map((alt) => (
+                                <Card
+                                    key={alt.id}
+                                    className="p-3 hover:shadow-md transition-shadow cursor-pointer"
+                                    onClick={() => router.push(`/scan-result?barcode=${alt.barcode}`)}
+                                >
+                                    <div className="flex gap-3">
+                                        <div className="relative w-12 h-12 bg-muted rounded shrink-0 overflow-hidden">
+                                            {alt.imageUrl ? (
+                                                <Image src={alt.imageUrl} alt={alt.name} fill className="object-cover" />
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full text-muted-foreground text-xs">No Image</div>
+                                            )}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h4 className="text-sm font-medium truncate">{alt.name}</h4>
+                                            <p className="text-xs text-muted-foreground truncate">{alt.brand ?? "Unknown brand"}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <EcoScoreBadge score={alt.ecoScore as "A" | "B" | "C" | "D" | "F"} size="sm" />
+                                                <p className="text-xs text-eco-green font-bold">
+                                                    -{alt.carbonReduction}% CO₂
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No alternatives found in our database yet. Keep scanning to help us build better recommendations!</p>
+                    )}
                 </div>
-            </div>
+            )}
 
             {/* Actions */}
             <div className="grid grid-cols-2 gap-4 mt-4">

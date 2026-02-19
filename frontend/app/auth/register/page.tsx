@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
+import { authApi } from "@/lib/api"
+import { toast } from "sonner"
 
 // Password strength utils
 const checkStrength = (pass: string) => {
@@ -61,20 +63,37 @@ export default function RegisterPage() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true)
-
-        // Simulate API call
-        setTimeout(() => {
-            login({
-                id: "1",
-                name: values.name,
+        try {
+            await authApi.register({
                 email: values.email,
-                points: 0,
-                level: 1,
-                avatar: "/placeholder-user.jpg"
+                password: values.password,
+                name: values.name,
             })
-            setIsLoading(false)
+            const res = await authApi.login({ email: values.email, password: values.password })
+            login(
+                {
+                    id: res.user.id,
+                    name: res.user.name ?? values.name,
+                    email: res.user.email,
+                    points: res.user.points,
+                    level: res.user.level,
+                    streakDays: res.user.streakDays,
+                },
+                res.token
+            )
             router.push("/")
-        }, 1000)
+        } catch (err) {
+            const code = err && typeof err === "object" && "code" in err ? (err as { code?: string }).code : undefined
+            const message = err instanceof Error ? err.message : "Registration failed"
+            if (code === "CONFLICT" || message.toLowerCase().includes("already exists")) {
+                toast.error("An account with this email already exists. Please log in.")
+                router.push("/auth/login")
+            } else {
+                toast.error(message)
+            }
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (

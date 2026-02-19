@@ -8,7 +8,7 @@ import { ApiError } from '@/lib/errors';
 
 export async function GET() {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const userChallenges = await prisma.userChallenge.findMany({
       where: { userId },
       include: {
@@ -50,7 +50,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     const body = await request.json();
     const parsed = challengeAcceptSchema.safeParse(body);
     if (!parsed.success) {

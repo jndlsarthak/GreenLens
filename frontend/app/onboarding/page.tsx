@@ -9,7 +9,7 @@ import { ScanLine, Award, Leaf, ArrowRight, Check } from "lucide-react"
 const steps = [
     {
         id: 1,
-        title: "Welcome to EcoLearn",
+        title: "Welcome to GreenLens",
         description: "Your AI-powered companion for a sustainable lifestyle. Scan products to unveil their environmental impact.",
         icon: Leaf,
         color: "text-eco-green"
@@ -38,7 +38,7 @@ export default function OnboardingPage() {
         if (currentStep < steps.length - 1) {
             setCurrentStep(currentStep + 1)
         } else {
-            router.push('/')
+            router.push('/auth/register')
         }
     }
 

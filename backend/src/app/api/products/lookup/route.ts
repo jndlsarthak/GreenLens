@@ -58,6 +58,8 @@ export async function POST(request: Request) {
         imageUrl: cached.imageUrl,
         carbonFootprint: cached.carbonFootprint,
         ecoScore: cached.ecoScore,
+        nutriScore: cached.nutriScore,
+        novaScore: cached.novaScore,
         lastUpdated: cached.lastUpdated,
         scanCount: cached.scanCount,
         source: 'cache',
@@ -85,6 +87,8 @@ export async function POST(request: Request) {
         imageUrl: productData.imageUrl,
         carbonFootprint: productData.carbonFootprint,
         ecoScore: productData.ecoScore,
+        nutriScore: productData.nutriScore ?? null,
+        novaScore: productData.novaScore ?? null,
       },
     });
 
@@ -98,6 +102,8 @@ export async function POST(request: Request) {
       imageUrl: created.imageUrl,
       carbonFootprint: created.carbonFootprint,
       ecoScore: created.ecoScore,
+      nutriScore: created.nutriScore,
+      novaScore: created.novaScore,
       lastUpdated: created.lastUpdated,
       scanCount: created.scanCount,
       source: 'api',

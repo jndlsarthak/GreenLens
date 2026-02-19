@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger';
 
 export async function DELETE() {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     await prisma.user.delete({
       where: { id: userId },
     });

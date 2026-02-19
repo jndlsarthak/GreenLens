@@ -37,6 +37,8 @@ model Product {
   imageUrl        String?
   carbonFootprint Float    // kg CO2e
   ecoScore        String   // A-F
+  nutriScore      String?  // A-E (Nutri-Score from Open Food Facts)
+  novaScore       Int?     // 1-4 (NOVA processing level)
   lastUpdated     DateTime @updatedAt
   scanCount       Int      @default(0)
 
@@ -44,6 +46,9 @@ model Product {
 
   @@index([barcode])
   @@index([id])
+  @@index([category])
+  @@index([carbonFootprint])
+  @@index([ecoScore])
 }
 
 model Scan {
