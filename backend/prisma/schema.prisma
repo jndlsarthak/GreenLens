@@ -1,0 +1,124 @@
+// GreenLens MVP - PostgreSQL schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?   // null for OAuth users
+  name          String?
+  totalPoints   Int       @default(0)
+  streakDays    Int       @default(0)
+  lastScanDate  DateTime? @db.Date
+  lastActiveAt  DateTime?
+  createdAt     DateTime  @default(now())
+
+  scans         Scan[]
+  userChallenges UserChallenge[]
+  userBadges    UserBadge[]
+
+  @@index([id])
+  @@index([email])
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  barcode         String   @unique
+  name            String
+  brand           String?
+  category        String?
+  rawCategories   String?
+  imageUrl        String?
+  carbonFootprint Float    // kg CO2e
+  ecoScore        String   // A-F
+  lastUpdated     DateTime @updatedAt
+  scanCount       Int      @default(0)
+
+  scans Scan[]
+
+  @@index([barcode])
+  @@index([id])
+}
+
+model Scan {
+  id               String   @id @default(cuid())
+  userId           String
+  productId        String?
+  barcode          String
+  productName      String
+  carbonFootprint  Float
+  pointsEarned     Int      @default(10)
+  createdAt        DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model Challenge {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String   // scan_count, category_count, eco_score, streak
+  pointsReward Int
+  criteria    Json     // e.g. {"target": 5, "category": "plastic"}
+  active      Boolean  @default(true)
+  displayOrder Int     @default(0)
+
+  userChallenges UserChallenge[]
+
+  @@index([id])
+  @@index([active])
+}
+
+model UserChallenge {
+  userId      String
+  challengeId String
+  progress    Int       @default(0)
+  completed   Boolean   @default(false)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, challengeId])
+  @@index([userId])
+  @@index([challengeId])
+}
+
+model Badge {
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  iconUrl      String?
+  criteriaType String   // scans_total, streak_days, eco_products, points_total
+  criteriaValue Int
+  displayOrder Int      @default(0)
+
+  userBadges UserBadge[]
+
+  @@index([id])
+}
+
+model UserBadge {
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+}
