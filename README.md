@@ -1,75 +1,127 @@
-# GreenLens (Full Stack)
+# GreenLens 🌿🔍
 
-Frontend and backend live in `frontend/` and `backend/`. Here’s how to run and connect them.
+> **Sustainable Shopping Companion**  
+> GreenLens is a full-stack application that helps users make eco-friendly shopping choices by scanning product barcodes to reveal their carbon footprint and eco-score.
 
-## 1. Backend
+## 🚀 Project Structure
 
-```bash
-cd backend
-npm install
-cp .env.example .env   # set DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL
-npx prisma generate
-npx prisma db push
-npm run db:seed
-npm run dev
-```
+This is a monorepo containing both the frontend and backend applications:
 
-Backend runs at **http://localhost:3000** by default.
+*   **`frontend/`**: Next.js 16 application (The User Interface)
+*   **`backend/`**: Next.js 14 application providing the API & Database (The Brains)
 
-Optional: set `CORS_ORIGINS` in `.env` to the frontend URL (e.g. `http://localhost:3001`) if you use a different port.
+---
 
-## 2. Frontend
+## 🛠️ Prerequisites
 
-```bash
-cd frontend
-npm install
-cp .env.local.example .env.local   # set NEXT_PUBLIC_API_URL=http://localhost:3000
-PORT=3001 npm run dev
-```
+Before you begin, ensure you have the following installed:
+*   **Node.js** (v18 or higher)
+*   **PostgreSQL** (Database)
 
-Frontend runs at **http://localhost:3001** so it doesn’t clash with the backend on 3000.
+---
 
-## 3. Connect them
+## ⚡ Quick Start Guide
 
-- In **frontend** `.env.local`:  
-  `NEXT_PUBLIC_API_URL=http://localhost:3000`  
-  (or whatever port the backend uses.)
+### 1. Backend Setup (Port 3001)
 
-- In **backend** `.env` (optional):  
-  `CORS_ORIGINS=http://localhost:3001`  
-  so the browser can call the API from the frontend origin.
+The backend handles the database connection, authentication, and product data.
 
-Then:
+1.  **Navigate to the backend folder**:
+    ```bash
+    cd backend
+    ```
 
-1. Open the frontend (e.g. http://localhost:3001).
-2. Register or log in — these hit the backend and store a token.
-3. Scan a barcode — frontend calls backend product lookup and records the scan.
+2.  **Install Dependencies**:
+    ```bash
+    npm install
+    ```
 
-## Troubleshooting: “Failed to connect to backend”
+3.  **Configure Environment**:
+    Create a `.env` file in the `backend` directory:
+    ```env
+    # Database Connection
+    # Replace 'user:password' with your PostgreSQL credentials
+    DATABASE_URL="postgresql://postgres:your_password@localhost:5432/greenlens"
 
-If you see this popup, the frontend cannot reach the API:
+    # Authentication
+    NEXTAUTH_URL="http://localhost:3001"
+    NEXTAUTH_SECRET="your-super-secret-key"
 
-1. **Start the backend** (in a separate terminal):
-   ```bash
-   cd backend && npm run dev
-   ```
-   You should see something like `Server running on port 3000`.
+    # CORS (Optional, allows frontend to communicate)
+    CORS_ORIGINS="http://localhost:3000"
+    ```
 
-2. **Check the URL**  
-   In `frontend/.env.local` set:
-   ```bash
-   NEXT_PUBLIC_API_URL=http://localhost:3000
-   ```
-   No trailing slash. Restart the frontend after changing this.
+4.  **Setup Database**:
+    Initialize the database and seed it with starter data (products, users, etc.):
+    ```bash
+    npx prisma db push
+    npm run db:seed
+    ```
 
-3. **Quick test**  
-   Open http://localhost:3000/api/health (or your backend port) in the browser. If the backend is running, you should get a response (e.g. `{"ok":true}` or similar). If it fails, the backend is not running or is on a different port.
+5.  **Run the Backend**:
+    Start the server on port **3001**:
+    ```bash
+    npm run dev -- -p 3001
+    ```
 
-4. **CORS**  
-   If the frontend is on another host/port, set `CORS_ORIGINS` in `backend/.env` to the frontend origin (e.g. `http://localhost:3001`).
+### 2. Frontend Setup (Port 3000)
 
-## Auth
+The frontend is the web application you interact with.
 
-- **Register**: `POST /api/auth/register` (email, password, name).
-- **Login**: `POST /api/auth/login` (email, password) → returns `{ token, user }`.  
-  The frontend stores the token and sends `Authorization: Bearer <token>` on API requests.
+1.  **Open a NEW terminal** (keep the backend running) and navigate to the frontend:
+    ```bash
+    cd frontend
+    ```
+
+2.  **Install Dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Configure Environment**:
+    Create a `.env.local` file in the `frontend` directory:
+    ```env
+    # Point to the running backend
+    NEXT_PUBLIC_API_URL=http://localhost:3001
+    ```
+
+4.  **Run the Frontend**:
+    Start the application on port **3000**:
+    ```bash
+    npm run dev
+    ```
+
+---
+
+## 📱 How to Use
+
+1.  Open your browser and visit: **http://localhost:3000**
+2.  **Log In / Register**: create an account to track your eco-impact.
+3.  **Scan Products**:
+    *   Click "Scan" and use your camera to scan a product barcode.
+    *   Or upload an image of a barcode.
+    *   We recently improved the scanner to handle various lighting conditions better! 📸
+4.  **View Results**: See the carbon footprint, eco-score, and sustainable alternatives for the product.
+
+---
+
+## 🧰 Tech Stack
+
+**Frontend:**
+*   **Framework**: Next.js 16 (App Router)
+*   **Styling**: Tailwind CSS
+*   **Components**: Shadcn UI, Lucide Icons, Framer Motion
+*   **Scanning**: HTML5-QRCode
+
+**Backend:**
+*   **Framework**: Next.js 14 API Routes
+*   **Database**: PostgreSQL
+*   **ORM**: Prisma
+*   **Auth**: NextAuth.js
+
+---
+
+## 🐛 Troubleshooting
+
+*   **"No MultiFormat Readers were able to detect the code"**: Ensure good lighting and that the barcode is in focus. We have optimized the scanner for high-quality captures, but clear images are key.
+*   **Connection Error**: Ensure the backend is running on port 3001 and the frontend `.env.local` points to it correctly.
