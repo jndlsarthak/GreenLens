@@ -15,6 +15,7 @@ export interface Challenge {
 interface ChallengeState {
     challenges: Challenge[]
     acceptChallenge: (id: string) => void
+    cancelChallenge: (id: string) => void
     updateProgress: (id: string, amount: number) => void
     completeChallenge: (id: string) => void
 }
@@ -49,6 +50,11 @@ export const useChallengeStore = create<ChallengeState>()(
             acceptChallenge: (id) => set((state) => ({
                 challenges: state.challenges.map(c =>
                     c.id === id ? { ...c, status: 'active' } : c
+                )
+            })),
+            cancelChallenge: (id) => set((state) => ({
+                challenges: state.challenges.map(c =>
+                    c.id === id ? { ...c, status: 'available', progress: 0 } : c
                 )
             })),
             updateProgress: (id, amount) => set((state) => ({

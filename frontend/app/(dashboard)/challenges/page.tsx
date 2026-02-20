@@ -5,7 +5,7 @@ import { ChallengeCard } from "@/components/shared/ChallengeCard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function ChallengesPage() {
-    const { challenges, acceptChallenge } = useChallengeStore()
+    const { challenges, acceptChallenge, cancelChallenge } = useChallengeStore()
 
     const activeChallenges = challenges.filter(c => c.status === 'active' || c.status === 'available')
     const completedChallenges = challenges.filter(c => c.status === 'completed')
@@ -28,6 +28,7 @@ export default function ChallengesPage() {
                             key={challenge.id}
                             challenge={challenge}
                             onAccept={() => acceptChallenge(challenge.id)}
+                            onCancel={cancelChallenge}
                         />
                     ))}
                 </TabsContent>

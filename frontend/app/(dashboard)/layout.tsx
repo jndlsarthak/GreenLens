@@ -1,15 +1,17 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Sidebar } from "@/components/shared/Sidebar"
 import { BottomNav } from "@/components/shared/BottomNav"
+import { BadgeEarnedPopup } from "@/components/shared/BadgeEarnedPopup"
 import { Button } from "@/components/ui/button"
-import { Menu, Search, CircleUser } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Menu, CircleUser } from "lucide-react"
+import { SearchBar } from "@/components/shared/SearchBar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useUIStore } from "@/store/uiStore"
 import { useAuthStore } from "@/store/authStore"
+import { useScanStore } from "@/store/scanStore"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -20,7 +22,10 @@ export default function DashboardLayout({
 }) {
     const toggleSidebar = useUIStore(state => state.toggleSidebar)
     const { user, logout } = useAuthStore()
+    const { newlyEarnedBadges, setNewlyEarnedBadges } = useScanStore()
     const router = useRouter()
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => setMounted(true), [])
 
     useEffect(() => {
         if (user === null) {
@@ -46,34 +51,32 @@ export default function DashboardLayout({
                         <Menu className="h-5 w-5" />
                         <span className="sr-only">Toggle navigation</span>
                     </Button>
-                    <div className="w-full flex-1">
-                        <form>
-                            <div className="relative">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type="search"
-                                    placeholder="Search products..."
-                                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                                />
-                            </div>
-                        </form>
+                    <div className="w-full flex-1 flex justify-center md:justify-start">
+                        <SearchBar />
                     </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="secondary" size="icon" className="rounded-full">
-                                <CircleUser className="h-5 w-5" />
-                                <span className="sr-only">Toggle user menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
-                            <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    {mounted ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="secondary" size="icon" className="rounded-full">
+                                    <CircleUser className="h-5 w-5" />
+                                    <span className="sr-only">Toggle user menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Button variant="secondary" size="icon" className="rounded-full" type="button" aria-label="Toggle user menu">
+                            <CircleUser className="h-5 w-5" />
+                            <span className="sr-only">Toggle user menu</span>
+                        </Button>
+                    )}
                     <div className="text-sm font-medium mr-2 hidden md:block">
                         {user?.points || 0} pts
                     </div>
@@ -83,6 +86,12 @@ export default function DashboardLayout({
                 </main>
             </div>
             <BottomNav />
+            {newlyEarnedBadges && newlyEarnedBadges.length > 0 && (
+                <BadgeEarnedPopup
+                    badges={newlyEarnedBadges}
+                    onDismiss={() => setNewlyEarnedBadges(null)}
+                />
+            )}
         </div>
     )
 }

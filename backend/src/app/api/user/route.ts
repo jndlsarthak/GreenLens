@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { errorResponse, getStatusCode } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   try {
     const userId = await getUserId(request);
     await prisma.user.delete({

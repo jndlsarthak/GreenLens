@@ -3,7 +3,7 @@ import { getUserId } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { errorResponse, getStatusCode } from '@/lib/errors';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const userId = await getUserId(request);
     const allBadges = await prisma.badge.findMany({

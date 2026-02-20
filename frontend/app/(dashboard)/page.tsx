@@ -14,7 +14,7 @@ import { toast } from "sonner"
 export default function HomePage() {
     const router = useRouter()
     const { addPoints, token } = useAuthStore()
-    const { recentScans, addScan, setCurrentScan } = useScanStore()
+    const { recentScans, addScan, setCurrentScan, setNewlyEarnedBadges } = useScanStore()
     const [scanning, setScanning] = useState(false)
 
     const handleScan = async (barcode: string) => {
@@ -45,6 +45,10 @@ export default function HomePage() {
             addScan(scanResult)
             setCurrentScan(scanResult)
             addPoints(recorded.pointsEarned)
+            const earned = recorded.newlyEarnedBadges ?? []
+            if (earned.length > 0) {
+                setNewlyEarnedBadges(earned)
+            }
             router.push(`/scan-result?barcode=${barcode}`)
         } catch (err) {
             const message = err instanceof Error ? err.message : "Scan failed"

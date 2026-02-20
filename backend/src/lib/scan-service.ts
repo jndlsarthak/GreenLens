@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { calculateNewStreak, applyStreakChange } from '@/lib/streak';
 import { updateUserChallengeProgress } from '@/lib/challenge-progress';
 import { checkBadgeEligibility } from '@/lib/badge-checker';
+import type { NewlyEarnedBadge } from '@/lib/badge-checker';
 
 const POINTS_PER_SCAN = 10;
 
@@ -13,7 +14,12 @@ export interface RecordScanInput {
   carbonFootprint: number;
 }
 
-export async function recordScan(input: RecordScanInput) {
+export interface RecordScanResult {
+  scan: Awaited<ReturnType<typeof prisma.scan.create>>;
+  newlyEarnedBadges: NewlyEarnedBadge[];
+}
+
+export async function recordScan(input: RecordScanInput): Promise<RecordScanResult> {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -54,7 +60,7 @@ export async function recordScan(input: RecordScanInput) {
   }
 
   await updateUserChallengeProgress(input.userId);
-  await checkBadgeEligibility(input.userId);
+  const newlyEarnedBadges = await checkBadgeEligibility(input.userId);
 
-  return scan;
+  return { scan, newlyEarnedBadges };
 }

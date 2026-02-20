@@ -11,24 +11,29 @@ const challenges = [
 ];
 
 const badges = [
-  // Easy progression – scan count
+  // Very easy – first steps (new users earn these quickly)
   { name: 'First Scan', description: 'Complete your first product scan', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 1, displayOrder: 0 },
-  { name: 'Getting Started', description: 'Scan 3 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 3, displayOrder: 1 },
-  { name: 'Explorer', description: 'Scan 5 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 5, displayOrder: 2 },
-  { name: '10 Scans', description: 'Scan 10 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 10, displayOrder: 3 },
-  { name: '25 Scans', description: 'Scan 25 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 25, displayOrder: 4 },
-  { name: '50 Scans', description: 'Scan 50 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 50, displayOrder: 5 },
-  { name: 'Century', description: 'Scan 100 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 100, displayOrder: 6 },
-  // Eco-focused
-  { name: 'Eco Novice', description: 'Scan 5 eco-friendly (A/B) products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 5, displayOrder: 7 },
-  { name: 'Eco Enthusiast', description: 'Scan 10 eco-friendly products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 10, displayOrder: 8 },
-  { name: 'Eco Expert', description: 'Scan 20 eco-friendly products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 20, displayOrder: 9 },
-  // Streaks
-  { name: '3-Day Streak', description: 'Scan on 3 consecutive days', iconUrl: null, criteriaType: 'streak_days', criteriaValue: 3, displayOrder: 10 },
-  { name: 'Week Warrior', description: 'Maintain a 7-day scan streak', iconUrl: null, criteriaType: 'streak_days', criteriaValue: 7, displayOrder: 11 },
-  // Points
-  { name: 'Points Collector', description: 'Earn 100 points', iconUrl: null, criteriaType: 'points_total', criteriaValue: 100, displayOrder: 12 },
-  { name: 'Points Champion', description: 'Earn 500 points', iconUrl: null, criteriaType: 'points_total', criteriaValue: 500, displayOrder: 13 },
+  { name: 'Second Scan', description: 'Scan your second product', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 2, displayOrder: 1 },
+  { name: 'Getting Started', description: 'Scan 3 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 3, displayOrder: 2 },
+  { name: 'Explorer', description: 'Scan 5 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 5, displayOrder: 3 },
+  { name: '10 Scans', description: 'Scan 10 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 10, displayOrder: 4 },
+  { name: '25 Scans', description: 'Scan 25 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 25, displayOrder: 5 },
+  { name: '50 Scans', description: 'Scan 50 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 50, displayOrder: 6 },
+  { name: 'Century', description: 'Scan 100 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 100, displayOrder: 7 },
+  // Eco – easy first, then progression
+  { name: 'First Eco Choice', description: 'Scan your first A or B rated product', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 1, displayOrder: 8 },
+  { name: 'Eco Novice', description: 'Scan 5 eco-friendly (A/B) products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 5, displayOrder: 9 },
+  { name: 'Eco Enthusiast', description: 'Scan 10 eco-friendly products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 10, displayOrder: 10 },
+  { name: 'Eco Expert', description: 'Scan 20 eco-friendly products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 20, displayOrder: 11 },
+  // Streaks – easy first
+  { name: 'Streak Starter', description: 'Scan on 2 consecutive days', iconUrl: null, criteriaType: 'streak_days', criteriaValue: 2, displayOrder: 12 },
+  { name: '3-Day Streak', description: 'Scan on 3 consecutive days', iconUrl: null, criteriaType: 'streak_days', criteriaValue: 3, displayOrder: 13 },
+  { name: 'Week Warrior', description: 'Maintain a 7-day scan streak', iconUrl: null, criteriaType: 'streak_days', criteriaValue: 7, displayOrder: 14 },
+  // Points – easier tiers first
+  { name: 'Points Starter', description: 'Earn 25 points', iconUrl: null, criteriaType: 'points_total', criteriaValue: 25, displayOrder: 15 },
+  { name: '50 Points', description: 'Earn 50 points', iconUrl: null, criteriaType: 'points_total', criteriaValue: 50, displayOrder: 16 },
+  { name: 'Points Collector', description: 'Earn 100 points', iconUrl: null, criteriaType: 'points_total', criteriaValue: 100, displayOrder: 17 },
+  { name: 'Points Champion', description: 'Earn 500 points', iconUrl: null, criteriaType: 'points_total', criteriaValue: 500, displayOrder: 18 },
 ];
 
 async function main() {

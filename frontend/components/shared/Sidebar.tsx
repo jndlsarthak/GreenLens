@@ -33,31 +33,34 @@ export function Sidebar() {
     const isSidebarOpen = useUIStore(state => state.isSidebarOpen)
 
     return (
-        <div className={cn("hidden border-r bg-muted/40 lg:block dark:bg-muted/10", isSidebarOpen ? "w-64" : "w-[70px]", "transition-all duration-300 h-screen sticky top-0")}>
+        <div className={cn(
+            "hidden border-r bg-muted/40 lg:block dark:bg-muted/10 shrink-0 transition-[width] duration-300 h-screen sticky top-0",
+            isSidebarOpen ? "w-64 min-w-[256px]" : "w-[88px] min-w-[88px]"
+        )}>
             <div className="flex h-full max-h-screen flex-col gap-2">
-                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] justify-between">
-                    <Link href="/" className="flex items-center gap-2 font-semibold">
-                        <Leaf className="h-6 w-6 text-eco-green" />
-                        <span className={cn("transition-opacity", isSidebarOpen ? "opacity-100" : "opacity-0 hidden")}>GreenLens</span>
+                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] justify-between min-h-[56px]">
+                    <Link href="/" className="flex items-center gap-2 font-semibold min-w-0">
+                        <Leaf className="h-6 w-6 shrink-0 text-eco-green" />
+                        <span className={cn("transition-opacity truncate", isSidebarOpen ? "opacity-100" : "opacity-0 w-0 overflow-hidden")}>GreenLens</span>
                     </Link>
                 </div>
-                <div className="flex-1 overflow-auto py-2"> {/* Replace ScrollArea with div for now */}
+                <div className="flex-1 overflow-auto py-2">
                     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                         {navItems.map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
+                                    "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all hover:text-primary min-h-[44px]",
                                     pathname === item.href
                                         ? "bg-muted text-primary"
                                         : "text-muted-foreground",
-                                    !isSidebarOpen && "justify-center"
+                                    !isSidebarOpen && "justify-center px-2"
                                 )}
                                 title={item.name}
                             >
-                                <item.icon className="h-4 w-4" />
-                                <span className={cn("transition-opacity", isSidebarOpen ? "opacity-100" : "opacity-0 hidden")}>{item.name}</span>
+                                <item.icon className="h-5 w-5 shrink-0" />
+                                <span className={cn("transition-opacity truncate", isSidebarOpen ? "opacity-100" : "opacity-0 w-0 overflow-hidden")}>{item.name}</span>
                             </Link>
                         ))}
                     </nav>

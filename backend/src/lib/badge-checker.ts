@@ -1,12 +1,17 @@
 import { prisma } from '@/lib/prisma';
-import type { Badge } from '@prisma/client';
 
-export async function checkBadgeEligibility(userId: string): Promise<void> {
+/** Result of checking badge eligibility: IDs and names of badges newly awarded. */
+export interface NewlyEarnedBadge {
+  id: string;
+  name: string;
+}
+
+export async function checkBadgeEligibility(userId: string): Promise<NewlyEarnedBadge[]> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { totalPoints: true, streakDays: true },
   });
-  if (!user) return;
+  if (!user) return [];
 
   const earnedBadgeIds = (
     await prisma.userBadge.findMany({
@@ -27,6 +32,8 @@ export async function checkBadgeEligibility(userId: string): Promise<void> {
       product: { ecoScore: { in: ['A', 'B'] } },
     },
   });
+
+  const newlyEarned: NewlyEarnedBadge[] = [];
 
   for (const badge of badges) {
     let met = false;
@@ -50,6 +57,9 @@ export async function checkBadgeEligibility(userId: string): Promise<void> {
       await prisma.userBadge.create({
         data: { userId, badgeId: badge.id },
       });
+      newlyEarned.push({ id: badge.id, name: badge.name });
     }
   }
+
+  return newlyEarned;
 }

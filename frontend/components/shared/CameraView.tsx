@@ -178,17 +178,10 @@ export function CameraView({ onScan, onError }: CameraViewProps) {
         setCameraError(null)
     }, [stopCamera])
 
-    const handleDemoScan = () => {
-        setMode("decoding")
-        setTimeout(() => {
-            onScan("3017620422003")
-        }, 800)
-    }
-
     return (
-        <div className="relative w-full h-full bg-black overflow-hidden rounded-lg min-h-[300px] flex flex-col items-center justify-center">
+        <div className="relative w-full h-full bg-muted overflow-hidden rounded-lg min-h-[300px] flex flex-col items-center justify-center border border-border">
             {decodeError && mode === "choice" && (
-                <div className="absolute top-4 left-4 right-4 z-20 bg-amber-950/90 text-amber-100 text-sm px-3 py-2 rounded-lg border border-amber-500/50">
+                <div className="absolute top-4 left-4 right-4 z-20 bg-amber-950/90 text-amber-100 text-sm px-3 py-2 rounded-lg border border-amber-500/50 dark:bg-amber-900/90">
                     {decodeError}
                 </div>
             )}
@@ -202,7 +195,7 @@ export function CameraView({ onScan, onError }: CameraViewProps) {
                         exit={{ opacity: 0 }}
                         className="flex flex-col items-center gap-6 p-6 w-full max-w-sm"
                     >
-                        <p className="text-white/90 text-center text-sm">
+                        <p className="text-foreground/90 text-center text-sm">
                             Upload a photo or take a picture of the barcode or QR code, then we’ll scan it.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 w-full">
@@ -232,9 +225,6 @@ export function CameraView({ onScan, onError }: CameraViewProps) {
                                 Take picture
                             </Button>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-white/70 hover:text-white" onClick={handleDemoScan}>
-                            Try demo product
-                        </Button>
                     </motion.div>
                 )}
 
@@ -244,11 +234,11 @@ export function CameraView({ onScan, onError }: CameraViewProps) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 flex flex-col"
+                        className="absolute inset-0 flex flex-col rounded-lg overflow-hidden bg-muted"
                     >
                         {cameraError ? (
-                            <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
-                                <p className="text-white/90 mb-4">{cameraError}</p>
+                            <div className="flex flex-col items-center justify-center flex-1 p-6 text-center bg-muted">
+                                <p className="text-foreground/90 mb-4">{cameraError}</p>
                                 <Button variant="secondary" onClick={handleBackFromCamera}>
                                     Back
                                 </Button>
@@ -263,25 +253,25 @@ export function CameraView({ onScan, onError }: CameraViewProps) {
                                     className="w-full h-full object-cover bg-black"
                                 />
                                 {!cameraReady && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
-                                        <div className="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        <p className="text-white/90 text-sm mt-3">Starting camera…</p>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80">
+                                        <div className="w-10 h-10 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin" />
+                                        <p className="text-foreground/90 text-sm mt-3">Starting camera…</p>
                                     </div>
                                 )}
-                                <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4 px-4">
+                                <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4 px-4 items-center">
                                     <Button variant="secondary" onClick={handleBackFromCamera}>
                                         <ArrowLeft className="h-4 w-4 mr-2" />
                                         Back
                                     </Button>
-                                    <Button
-                                        size="lg"
-                                        className="rounded-full h-14 w-14 bg-primary text-primary-foreground"
+                                    <button
+                                        type="button"
                                         onClick={handleCapture}
                                         disabled={!cameraReady}
                                         title="Capture and scan"
+                                        className="flex items-center justify-center rounded-full h-16 w-16 border-4 border-white/90 bg-white/10 shadow-lg hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:pointer-events-none transition-all active:scale-95"
                                     >
-                                        <Camera className="h-7 w-7" />
-                                    </Button>
+                                        <span className="rounded-full h-11 w-11 bg-white shadow-inner" />
+                                    </button>
                                 </div>
                             </>
                         )}
@@ -294,10 +284,10 @@ export function CameraView({ onScan, onError }: CameraViewProps) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center"
+                        className="absolute inset-0 bg-background/90 flex flex-col items-center justify-center"
                     >
                         <div className="w-16 h-16 border-4 border-t-primary border-r-primary/30 border-b-primary/30 border-l-primary/30 rounded-full animate-spin" />
-                        <p className="text-white mt-4 font-medium">Reading code from image…</p>
+                        <p className="text-foreground mt-4 font-medium">Reading code from image…</p>
                     </motion.div>
                 )}
             </AnimatePresence>

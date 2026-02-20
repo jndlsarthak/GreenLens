@@ -118,16 +118,35 @@ export const productsApi = {
         carbonReduction: number
       }>
     }>(`/api/products/${encodeURIComponent(barcode)}/alternatives`),
+  search: (query: string) =>
+    apiFetch<{
+      products: Array<{
+        barcode: string
+        name: string
+        brand: string | null
+        category: string | null
+        imageUrl: string | null
+        carbonFootprint: number
+        ecoScore: string
+        nutriScore?: string | null
+        novaScore?: number | null
+      }>
+    }>(`/api/products/search?q=${encodeURIComponent(query.trim())}`),
 }
 
 // Scans (require token)
 export function scansApi(token: string | null) {
   return {
     record: (body: { barcode: string; productId?: string; productName?: string; carbonFootprint?: number }) =>
-      apiFetch<{ id: string; barcode: string; productName: string; carbonFootprint: number; pointsEarned: number; createdAt: string }>(
-        "/api/scans",
-        { method: "POST", body: JSON.stringify(body), token }
-      ),
+      apiFetch<{
+        id: string
+        barcode: string
+        productName: string
+        carbonFootprint: number
+        pointsEarned: number
+        createdAt: string
+        newlyEarnedBadges?: Array<{ id: string; name: string }>
+      }>("/api/scans", { method: "POST", body: JSON.stringify(body), token }),
     list: (params?: { limit?: number; offset?: number }) => {
       const q = new URLSearchParams()
       if (params?.limit) q.set("limit", String(params.limit))
@@ -144,10 +163,17 @@ export function scansApi(token: string | null) {
 export function userApi(token: string | null) {
   return {
     profile: () =>
-      apiFetch<{ id: string; email: string; name: string | null; totalPoints: number; streakDays: number; level: number }>(
+      apiFetch<{ id: string; email: string; name: string | null; totalPoints: number; streakDays: number; level: number; createdAt: string }>(
         "/api/user/profile",
         { token }
       ),
+    updateProfile: (body: { name?: string }) =>
+      apiFetch<{ id: string; email: string; name: string | null; totalPoints: number; streakDays: number; level: number; createdAt: string }>(
+        "/api/user/profile",
+        { method: "PUT", body: JSON.stringify(body), token }
+      ),
+    deleteAccount: () =>
+      apiFetch<{ message: string }>("/api/user", { method: "DELETE", token }),
     stats: () =>
       apiFetch<{
         level: number
@@ -159,5 +185,24 @@ export function userApi(token: string | null) {
         ecoFriendlyScans: number
         topCategories: Array<{ category: string; count: number }>
       }>("/api/user/stats", { token }),
+  }
+}
+
+// Badges – with token returns user's badges + earned status; without token returns all badges (no earned)
+export function badgesApi(token: string | null) {
+  return {
+    userBadges: () =>
+      apiFetch<{
+        badges: Array<{
+          id: string
+          name: string
+          description: string
+          iconUrl: string | null
+          earned: boolean
+          earnedAt: string | null
+        }>
+      }>("/api/badges/user", { token }),
+    all: () =>
+      apiFetch<Array<{ id: string; name: string; description: string; iconUrl: string | null }>>("/api/badges"),
   }
 }

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     }
     if (carbonFootprintFinal === undefined) carbonFootprintFinal = 2.0; // fallback
 
-    const scan = await recordScan({
+    const { scan, newlyEarnedBadges } = await recordScan({
       userId,
       barcode,
       productId: productIdFinal,
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
         carbonFootprint: scan.carbonFootprint,
         pointsEarned: scan.pointsEarned,
         createdAt: scan.createdAt,
+        newlyEarnedBadges,
       },
       { status: 201 }
     );
