@@ -11,7 +11,6 @@ import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
 import { authApi } from "@/lib/api"
@@ -186,14 +185,22 @@ export default function RegisterPage() {
                                 control={form.control}
                                 name="terms"
                                 render={({ field }) => (
-                                    <Checkbox
+                                    <input
+                                        type="checkbox"
                                         id="terms"
                                         checked={field.value}
-                                        onCheckedChange={field.onChange}
+                                        onChange={(e) => field.onChange(e.target.checked)}
+                                        ref={field.ref}
+                                        suppressHydrationWarning
+                                        className={cn(
+                                            "h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background accent-primary",
+                                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                            "disabled:cursor-not-allowed disabled:opacity-50"
+                                        )}
                                     />
                                 )}
                             />
-                            <Label htmlFor="terms" className="text-sm font-normal">
+                            <Label htmlFor="terms" className="text-sm font-normal cursor-pointer">
                                 I agree to the{" "}
                                 <Link href="/terms" className="underline hover:text-primary">Terms of Service</Link>
                                 {" "}and{" "}

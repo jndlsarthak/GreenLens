@@ -1,8 +1,1 @@
-{
-  "/api/badges/user/route": "app/api/badges/user/route.js",
-  "/api/scans/route": "app/api/scans/route.js",
-  "/api/products/lookup/route": "app/api/products/lookup/route.js",
-  "/api/products/[barcode]/alternatives/route": "app/api/products/[barcode]/alternatives/route.js",
-  "/api/products/search/route": "app/api/products/search/route.js",
-  "/api/user/profile/route": "app/api/user/profile/route.js"
-}
+{}

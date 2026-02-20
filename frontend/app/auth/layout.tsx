@@ -1,6 +1,13 @@
 import Link from "next/link"
 import { Leaf } from "lucide-react"
 
+const SDG_IMAGES = [
+    { src: "/images/login/sdg-3.png", alt: "SDG 3 - Good Health and Well-being" },
+    { src: "/images/login/sdg-11.png", alt: "SDG 11 - Sustainable Cities and Communities" },
+    { src: "/images/login/sdg-12.png", alt: "SDG 12 - Responsible Consumption and Production" },
+    { src: "/images/login/sdg-13.png", alt: "SDG 13 - Climate Action" },
+]
+
 export default function AuthLayout({
     children,
 }: {
@@ -13,6 +20,19 @@ export default function AuthLayout({
                 <div className="relative z-20 flex items-center text-lg font-medium">
                     <Leaf className="mr-2 h-6 w-6" />
                     GreenLens
+                </div>
+                <div className="relative z-20 flex flex-1 items-center justify-center pt-4 overflow-auto">
+                    <div className="flex flex-row gap-3 justify-center items-center w-full max-w-[90%]">
+                        {SDG_IMAGES.map(({ src, alt }) => (
+                            <div key={src} className="flex-1 min-w-0 aspect-[3/4] flex items-center justify-center">
+                                <img
+                                    src={src}
+                                    alt={alt}
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <div className="relative z-20 mt-auto">
                     <blockquote className="space-y-2">

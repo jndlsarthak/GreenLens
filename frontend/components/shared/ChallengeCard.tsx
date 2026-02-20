@@ -40,7 +40,7 @@ export function ChallengeCard({ challenge, onAccept, onCancel }: ChallengeCardPr
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
                 {challenge.status === 'available' && (
-                    <Button className="w-full" onClick={onAccept}>Accept Challenge</Button>
+                    <Button size="default" className="w-[60%] max-w-full shrink-0" onClick={onAccept}>Accept Challenge</Button>
                 )}
                 {isActive && (
                     <>
@@ -48,21 +48,21 @@ export function ChallengeCard({ challenge, onAccept, onCancel }: ChallengeCardPr
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="flex-1 gap-2"
+                                className="flex-1 min-w-0 gap-2"
                                 onClick={() => {}}
                                 title="Add pictures (coming soon)"
                             >
-                                <ImagePlus className="w-4 h-4" />
+                                <ImagePlus className="w-4 h-4 shrink-0" />
                                 Add pictures
                             </Button>
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-muted-foreground hover:text-destructive gap-2"
+                                className="flex-1 min-w-0 text-muted-foreground hover:text-destructive gap-2"
                                 onClick={() => onCancel?.(challenge.id)}
                                 title="Cancel challenge"
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-4 h-4 shrink-0" />
                                 Cancel
                             </Button>
                         </div>
