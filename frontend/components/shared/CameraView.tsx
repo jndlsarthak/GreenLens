@@ -122,13 +122,15 @@ export function CameraView({ onScan, onError }: CameraViewProps) {
                     setMode("choice")
                 }
             } catch (err) {
+                console.error("Scan error:", err);
                 const msg = err instanceof Error ? err.message : String(err)
-                if (msg.includes("No QR code found") || msg.includes("No barcode"))
-                    setDecodeError("No barcode or QR code found. Try a clearer image.")
+                if (msg.includes("No QR code found") || msg.includes("No barcode") || msg.includes("No MultiFormat Readers"))
+                    setDecodeError("Could not detect a code. Please ensure good lighting and that the code is in focus.")
                 else
                     setDecodeError(msg || "Could not read code from image.")
                 setMode("choice")
-                if (onError && err instanceof Error) onError(err)
+                // Only trigger onError for unexpected errors, not just text detection failures
+                if (onError && err instanceof Error && !msg.includes("No MultiFormat Readers")) onError(err)
             }
         },
         [onScan, onError]
@@ -168,7 +170,7 @@ export function CameraView({ onScan, onError }: CameraViewProps) {
                 decodeImage(file)
             },
             "image/png",
-            0.92
+            1.0
         )
     }, [stopCamera, decodeImage])
 
