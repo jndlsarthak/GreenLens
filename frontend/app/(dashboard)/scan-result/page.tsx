@@ -158,22 +158,31 @@ function ScanResultContent() {
 
             {/* Impact Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Carbon Footprint</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center gap-3">
-                        <ImpactMeter value={product.carbonFootprint} max={10} />
-                        <div className="space-y-1 text-sm text-center">
-                            {comparisons.map((comp, i) => (
-                                <p key={i} className="text-muted-foreground">
-                                    {comp.icon} Equivalent to {comp.label.toLowerCase()} for{" "}
-                                    <span className="font-bold text-foreground">{comp.value}</span>
-                                </p>
-                            ))}
+                <div className="space-y-4">
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base">Carbon Footprint</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center gap-3">
+                            <ImpactMeter value={product.carbonFootprint} max={10} />
+                            <div className="space-y-1 text-sm text-center">
+                                {comparisons.map((comp, i) => (
+                                    <p key={i} className="text-muted-foreground">
+                                        {comp.icon} Equivalent to {comp.label.toLowerCase()} for{" "}
+                                        <span className="font-bold text-foreground">{comp.value}</span>
+                                    </p>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {suggestedChallenge && (
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-semibold">New Challenge Available</h3>
+                            <ChallengeCard challenge={suggestedChallenge} />
                         </div>
-                    </CardContent>
-                </Card>
+                    )}
+                </div>
 
                 <div className="space-y-4">
                     <Card className={cn(
@@ -232,13 +241,6 @@ function ScanResultContent() {
                                 </ul>
                             </CardContent>
                         </Card>
-                    )}
-
-                    {suggestedChallenge && (
-                        <div className="space-y-2">
-                            <h3 className="text-sm font-semibold">New Challenge Available</h3>
-                            <ChallengeCard challenge={suggestedChallenge} />
-                        </div>
                     )}
                 </div>
             </div>
