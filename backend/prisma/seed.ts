@@ -11,12 +11,24 @@ const challenges = [
 ];
 
 const badges = [
+  // Easy progression – scan count
   { name: 'First Scan', description: 'Complete your first product scan', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 1, displayOrder: 0 },
-  { name: '10 Scans', description: 'Scan 10 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 10, displayOrder: 1 },
-  { name: '50 Scans', description: 'Scan 50 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 50, displayOrder: 2 },
-  { name: 'Eco Novice', description: 'Scan 5 eco-friendly (A/B) products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 5, displayOrder: 3 },
-  { name: 'Eco Expert', description: 'Scan 20 eco-friendly products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 20, displayOrder: 4 },
-  { name: '7-Day Streak', description: 'Maintain a 7-day scan streak', iconUrl: null, criteriaType: 'streak_days', criteriaValue: 7, displayOrder: 5 },
+  { name: 'Getting Started', description: 'Scan 3 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 3, displayOrder: 1 },
+  { name: 'Explorer', description: 'Scan 5 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 5, displayOrder: 2 },
+  { name: '10 Scans', description: 'Scan 10 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 10, displayOrder: 3 },
+  { name: '25 Scans', description: 'Scan 25 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 25, displayOrder: 4 },
+  { name: '50 Scans', description: 'Scan 50 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 50, displayOrder: 5 },
+  { name: 'Century', description: 'Scan 100 products', iconUrl: null, criteriaType: 'scans_total', criteriaValue: 100, displayOrder: 6 },
+  // Eco-focused
+  { name: 'Eco Novice', description: 'Scan 5 eco-friendly (A/B) products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 5, displayOrder: 7 },
+  { name: 'Eco Enthusiast', description: 'Scan 10 eco-friendly products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 10, displayOrder: 8 },
+  { name: 'Eco Expert', description: 'Scan 20 eco-friendly products', iconUrl: null, criteriaType: 'eco_products', criteriaValue: 20, displayOrder: 9 },
+  // Streaks
+  { name: '3-Day Streak', description: 'Scan on 3 consecutive days', iconUrl: null, criteriaType: 'streak_days', criteriaValue: 3, displayOrder: 10 },
+  { name: 'Week Warrior', description: 'Maintain a 7-day scan streak', iconUrl: null, criteriaType: 'streak_days', criteriaValue: 7, displayOrder: 11 },
+  // Points
+  { name: 'Points Collector', description: 'Earn 100 points', iconUrl: null, criteriaType: 'points_total', criteriaValue: 100, displayOrder: 12 },
+  { name: 'Points Champion', description: 'Earn 500 points', iconUrl: null, criteriaType: 'points_total', criteriaValue: 500, displayOrder: 13 },
 ];
 
 async function main() {
@@ -28,12 +40,19 @@ async function main() {
     console.log('Challenges already exist, skipping.');
   }
 
-  const badgeCount = await prisma.badge.count();
-  if (badgeCount === 0) {
-    console.log('Seeding badges...');
-    await prisma.badge.createMany({ data: badges });
+  // Ensure every badge in our list exists (create if missing by name)
+  let created = 0;
+  for (const badge of badges) {
+    const existing = await prisma.badge.findFirst({ where: { name: badge.name } });
+    if (!existing) {
+      await prisma.badge.create({ data: badge });
+      created++;
+    }
+  }
+  if (created > 0) {
+    console.log(`Created ${created} new badge(s). Total badges in list: ${badges.length}.`);
   } else {
-    console.log('Badges already exist, skipping.');
+    console.log(`All ${badges.length} badges already exist.`);
   }
 
   console.log('Seed complete.');

@@ -8,14 +8,14 @@ import { ImpactMeter } from "@/components/shared/ImpactMeter"
 import { EcoScoreBadge } from "@/components/shared/EcoScoreBadge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ArrowLeft, Share2, Save, Leaf } from "lucide-react"
+import { ArrowLeft, Share2, Leaf, Lightbulb } from "lucide-react"
 import confetti from "canvas-confetti"
 import { PointsAnimation } from "@/components/shared/PointsBadge"
 import { ChallengeCard } from "@/components/shared/ChallengeCard"
 import Image from "next/image"
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 import { productsApi } from "@/lib/api"
-import { getCarbonComparisons, getEcoTip } from "@/lib/comparisons"
+import { getCarbonComparisons, getEcoTip, getEcoSuggestions } from "@/lib/comparisons"
 import { cn } from "@/lib/utils"
 
 const fallbackProduct = {
@@ -115,6 +115,7 @@ function ScanResultContent() {
     const suggestedChallenge = challenges.find(c => c.status === 'available')
     const comparisons = getCarbonComparisons(product.carbonFootprint)
     const ecoTip = getEcoTip(product.ecoScore, product.carbonFootprint)
+    const ecoSuggestions = getEcoSuggestions(product.ecoScore)
 
     if (loading) {
         return (
@@ -208,6 +209,30 @@ function ScanResultContent() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {ecoSuggestions.length > 0 && (
+                        <Card className="border-amber-200 bg-amber-50/80">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <Lightbulb className="h-4 w-4 text-amber-600" />
+                                    Suggestions for a lower impact
+                                </CardTitle>
+                                <CardDescription className="text-amber-900/80">
+                                    Small changes can add up. Here are some ways to choose greener next time.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <ul className="space-y-2 text-sm text-amber-900/90">
+                                    {ecoSuggestions.map((s, i) => (
+                                        <li key={i} className="flex gap-2">
+                                            <span className="text-amber-500 shrink-0">•</span>
+                                            <span>{s}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {suggestedChallenge && (
                         <div className="space-y-2">

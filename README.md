@@ -45,6 +45,29 @@ Then:
 2. Register or log in — these hit the backend and store a token.
 3. Scan a barcode — frontend calls backend product lookup and records the scan.
 
+## Troubleshooting: “Failed to connect to backend”
+
+If you see this popup, the frontend cannot reach the API:
+
+1. **Start the backend** (in a separate terminal):
+   ```bash
+   cd backend && npm run dev
+   ```
+   You should see something like `Server running on port 3000`.
+
+2. **Check the URL**  
+   In `frontend/.env.local` set:
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost:3000
+   ```
+   No trailing slash. Restart the frontend after changing this.
+
+3. **Quick test**  
+   Open http://localhost:3000/api/health (or your backend port) in the browser. If the backend is running, you should get a response (e.g. `{"ok":true}` or similar). If it fails, the backend is not running or is on a different port.
+
+4. **CORS**  
+   If the frontend is on another host/port, set `CORS_ORIGINS` in `backend/.env` to the frontend origin (e.g. `http://localhost:3001`).
+
 ## Auth
 
 - **Register**: `POST /api/auth/register` (email, password, name).

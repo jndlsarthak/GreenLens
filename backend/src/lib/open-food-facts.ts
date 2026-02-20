@@ -4,7 +4,7 @@
  */
 
 import { logger } from '@/lib/logger';
-import { calculateCarbonFootprint, getEcoScoreFromTotalFootprint } from '@/lib/carbon-calculator';
+import { calculateCarbonFootprint, getEcoScoreFromTotalFootprint, extractWeightKg } from '@/lib/carbon-calculator';
 
 const OPEN_FOOD_FACTS_BASE = 'https://world.openfoodfacts.org/api/v0/product';
 
@@ -16,6 +16,7 @@ export interface OpenFoodFactsProduct {
   quantity?: string;
   packaging?: string;
   packaging_tags?: string[];
+  ingredients_text?: string; // Ingredients list
   // Open Food Facts carbon data (when available)
   carbon_footprint_from_ingredients_debug?: string;
   carbon_footprint_from_ingredients?: number;
@@ -40,7 +41,7 @@ export interface ParsedProduct {
   novaScore?: number | null; // 1-4
 }
 
-function parseProductFromResponse(body: { product?: OpenFoodFactsProduct }): ParsedProduct | null {
+async function parseProductFromResponse(body: { product?: OpenFoodFactsProduct }): Promise<ParsedProduct | null> {
   const p = body?.product;
   if (!p) return null;
 
@@ -52,45 +53,47 @@ function parseProductFromResponse(body: { product?: OpenFoodFactsProduct }): Par
   const quantity = p.quantity ?? null;
   const packaging =
     p.packaging ?? (Array.isArray(p.packaging_tags) ? p.packaging_tags.join(', ') : null) ?? null;
+  const ingredients = p.ingredients_text ?? null;
 
-  // Use Open Food Facts carbon data if available, otherwise calculate
-  let carbonFootprint: number;
-  let ecoScore: string;
-  
-  if (p.carbon_footprint_from_ingredients !== undefined && p.carbon_footprint_from_ingredients > 0) {
-    // Open Food Facts provides carbon in g CO2e per 100g, convert to kg CO2e
-    const weightMatch = quantity?.match(/(\d+(?:\.\d+)?)\s*g/i);
-    const weightG = weightMatch ? parseFloat(weightMatch[1]) : 500; // default 500g
-    carbonFootprint = (p.carbon_footprint_from_ingredients * weightG) / 100000; // g to kg
-    carbonFootprint = Math.round(carbonFootprint * 10) / 10;
-    
-    // Use Open Food Facts eco_score_grade if available, otherwise calculate
-    if (p.eco_score_grade && /^[A-F]$/i.test(p.eco_score_grade)) {
-      ecoScore = p.eco_score_grade.toUpperCase();
-    } else {
-      const weightKg = weightG / 1000;
-      ecoScore = getEcoScoreFromTotalFootprint(carbonFootprint, weightKg);
-    }
-  } else {
-    // Fallback to our calculator
-    carbonFootprint = calculateCarbonFootprint({
-      categories,
-      quantity,
-      packaging,
-    });
-    const weightMatch = quantity?.match(/(\d+(?:\.\d+)?)\s*g/i);
-    const weightKg = weightMatch ? parseFloat(weightMatch[1]) / 1000 : 0.5;
-    ecoScore = getEcoScoreFromTotalFootprint(carbonFootprint, weightKg);
-  }
-
-  // Extract Nutri-Score and NOVA if available
-  const nutriScore = p.nutriscore_grade && /^[A-E]$/i.test(p.nutriscore_grade) 
-    ? p.nutriscore_grade.toUpperCase() 
-    : null;
+  // Extract NOVA score early (needed for calculations)
   const novaScore = p.nova_group && p.nova_group >= 1 && p.nova_group <= 4 
     ? p.nova_group 
     : (p.nova_groups ? parseInt(p.nova_groups.split(',')[0]?.trim() || '0') : null);
   const novaScoreFinal = novaScore && novaScore >= 1 && novaScore <= 4 ? novaScore : null;
+
+  // Extract weight for calculations (handles g, kg, ml, 2x250ml, etc.)
+  const weightKg = extractWeightKg(quantity);
+  const weightG = weightKg * 1000;
+
+  // Use only Open Food Facts data: OFF carbon/eco when available, else enhanced calculator from OFF fields
+  let carbonFootprint: number;
+  let ecoScore: string;
+
+  if (p.carbon_footprint_from_ingredients !== undefined && p.carbon_footprint_from_ingredients > 0) {
+    // Open Food Facts carbon: g CO2e per 100g → convert to kg CO2e for product
+    carbonFootprint = (p.carbon_footprint_from_ingredients * weightG) / 100000;
+    carbonFootprint = Math.round(carbonFootprint * 10) / 10;
+    if (p.eco_score_grade && /^[A-F]$/i.test(p.eco_score_grade)) {
+      ecoScore = p.eco_score_grade.toUpperCase();
+    } else {
+      ecoScore = getEcoScoreFromTotalFootprint(carbonFootprint, weightKg);
+    }
+  } else {
+    // Enhanced calculator using only OFF data (categories, quantity, packaging, ingredients)
+    carbonFootprint = calculateCarbonFootprint({
+      categories,
+      quantity,
+      packaging,
+      novaScore: novaScoreFinal,
+      ingredients,
+    });
+    ecoScore = getEcoScoreFromTotalFootprint(carbonFootprint, weightKg);
+  }
+
+  // Extract Nutri-Score
+  const nutriScore = p.nutriscore_grade && /^[A-E]$/i.test(p.nutriscore_grade) 
+    ? p.nutriscore_grade.toUpperCase() 
+    : null;
 
   return {
     name,
@@ -104,6 +107,7 @@ function parseProductFromResponse(body: { product?: OpenFoodFactsProduct }): Par
     ecoScore,
     nutriScore: nutriScore ?? null,
     novaScore: novaScoreFinal,
+    // Note: calculationSource is logged but not returned (can be added if needed)
   };
 }
 
@@ -123,7 +127,7 @@ export async function fetchProductByBarcode(barcode: string): Promise<ParsedProd
       logger.info(`Product not found in Open Food Facts: ${barcode}`);
       return null;
     }
-    return parseProductFromResponse(data);
+    return await parseProductFromResponse(data);
   } catch (err) {
     logger.error('Open Food Facts fetch failed', { barcode, error: err });
     throw err;

@@ -76,3 +76,33 @@ export function getEcoTip(ecoScore: string, carbonFootprint: number): { message:
     variant: "warning",
   };
 }
+
+/** Suggestions shown when eco score is C, D, or F. Returns empty array for A/B. */
+export function getEcoSuggestions(ecoScore: string): string[] {
+  if (ecoScore === "A" || ecoScore === "B") return [];
+
+  const forAll: string[] = [
+    "Check out the better alternatives below—same category, lower carbon.",
+    "Next time, look for products with an A or B eco score on the pack or in our app.",
+    "Choosing plant-based or less processed options often lowers the footprint.",
+    "Prefer products with minimal or recyclable packaging when you can.",
+  ];
+
+  if (ecoScore === "F") {
+    return [
+      "This product has a very high climate impact. Try the alternatives below or similar products with a greener score.",
+      ...forAll,
+    ];
+  }
+  if (ecoScore === "D") {
+    return [
+      "This product has a high impact. Swapping to one of the alternatives below can significantly cut your carbon.",
+      ...forAll,
+    ];
+  }
+  // C
+  return [
+    "This product has a moderate impact. You can do better by picking one of the alternatives below.",
+    ...forAll,
+  ];
+}

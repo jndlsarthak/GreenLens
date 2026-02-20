@@ -21,6 +21,8 @@ interface ScanState {
     currentScan: ScanResult | null
     addScan: (scan: ScanResult) => void
     setCurrentScan: (scan: ScanResult | null) => void
+    /** Clear all scans (call on logout/login so each user only sees their own data). */
+    clearScans: () => void
 }
 
 export const useScanStore = create<ScanState>()(
@@ -33,6 +35,7 @@ export const useScanStore = create<ScanState>()(
                     recentScans: [scan, ...state.recentScans].slice(0, 50), // Keep last 50
                 })),
             setCurrentScan: (scan) => set({ currentScan: scan }),
+            clearScans: () => set({ recentScans: [], currentScan: null }),
         }),
         {
             name: 'scan-storage',

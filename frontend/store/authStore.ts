@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useScanStore } from '@/store/scanStore'
 
 interface User {
     id: string
@@ -26,8 +27,14 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             token: null,
             isAuthenticated: false,
-            login: (user, token) => set({ user, token, isAuthenticated: true }),
-            logout: () => set({ user: null, token: null, isAuthenticated: false }),
+            login: (user, token) => {
+                useScanStore.getState().clearScans()
+                set({ user, token, isAuthenticated: true })
+            },
+            logout: () => {
+                set({ user: null, token: null, isAuthenticated: false })
+                useScanStore.getState().clearScans()
+            },
             addPoints: (amount) =>
                 set((state) => ({
                     user: state.user
