@@ -25,6 +25,8 @@ export function SearchBar() {
     const [results, setResults] = useState<SearchProduct[]>([])
     const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
+    const [searchDone, setSearchDone] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const wrapperRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -43,13 +45,18 @@ export function SearchBar() {
         setLoading(true)
         setOpen(true)
         setResults([])
+        setError(null)
+        setSearchDone(false)
         try {
             const res = await productsApi.search(query.trim())
-            setResults(res.products ?? [])
-        } catch {
+            const list = Array.isArray(res?.products) ? res.products : []
+            setResults(list)
+        } catch (err) {
             setResults([])
+            setError(err instanceof Error ? err.message : "Search failed. Check your connection.")
         } finally {
             setLoading(false)
+            setSearchDone(true)
         }
     }
 
@@ -57,6 +64,8 @@ export function SearchBar() {
         setOpen(false)
         setQuery("")
         setResults([])
+        setSearchDone(false)
+        setError(null)
         router.push(`/scan-result?barcode=${barcode}`)
     }
 
@@ -77,11 +86,15 @@ export function SearchBar() {
                 </div>
             </form>
 
-            {open && (loading || results.length > 0) && (
+            {open && (loading || searchDone || results.length > 0) && (
                 <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-[70vh] overflow-auto rounded-lg border bg-background shadow-lg">
                     {loading ? (
                         <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
                             Searching Open Food Facts…
+                        </div>
+                    ) : error ? (
+                        <div className="py-6 px-4 text-center text-sm text-destructive">
+                            {error}
                         </div>
                     ) : results.length === 0 ? (
                         <div className="py-6 px-4 text-center text-sm text-muted-foreground">

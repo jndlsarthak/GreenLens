@@ -135,11 +135,35 @@ export async function fetchProductByBarcode(barcode: string): Promise<ParsedProd
 }
 
 const OFF_SEARCH_BASE = 'https://world.openfoodfacts.org/cgi/search.pl';
+const OFF_SEARCH_V2 = 'https://world.openfoodfacts.org/api/v2/search';
+
+interface SearchHit {
+  code?: string;
+  id?: string;
+  product_name?: string;
+  brands?: string;
+}
+
+function parseSearchHits(rawProducts: SearchHit[]): { barcode: string; name: string; brand: string | null }[] {
+  const hits: { barcode: string; name: string; brand: string | null }[] = [];
+  for (const p of rawProducts) {
+    const barcode = (p.code ?? p.id ?? '')?.toString()?.trim();
+    if (!barcode) continue;
+    const name = (p.product_name ?? '')?.toString()?.trim() || 'Unknown Product';
+    const brand = (p.brands ?? '')?.toString()?.trim() || null;
+    hits.push({ barcode, name, brand });
+    if (hits.length >= 6) break;
+  }
+  return hits;
+}
 
 /** Search Open Food Facts by product name; returns products with carbon and eco score (up to 6). */
+/** If full product fetch fails for a hit, we still return it with minimal data so search always shows results. */
 export async function searchProducts(query: string): Promise<(ParsedProduct & { barcode: string })[]> {
   const trimmed = query.trim();
   if (!trimmed) return [];
+
+  let rawProducts: SearchHit[] = [];
 
   try {
     const params = new URLSearchParams({
@@ -152,28 +176,53 @@ export async function searchProducts(query: string): Promise<(ParsedProduct & { 
     });
     const res = await fetch(`${OFF_SEARCH_BASE}?${params.toString()}`, {
       headers: { 'User-Agent': 'GreenLens-MVP/1.0 (Environmental Impact Assistant)' },
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(15000),
     });
-    if (!res.ok) {
-      logger.warn(`Open Food Facts search error: ${res.status}`);
-      return [];
+    if (res.ok) {
+      const data = (await res.json()) as { count?: number; products?: SearchHit[] };
+      rawProducts = data.products ?? [];
     }
-    const data = (await res.json()) as { count?: number; products?: Array<{ code?: string; product_name?: string; brands?: string }> };
-    const products = data.products ?? [];
-    const barcodes = products
-      .map((p) => p.code)
-      .filter((c): c is string => typeof c === 'string' && c.length > 0)
-      .slice(0, 6);
+    if (rawProducts.length === 0) {
+      const v2Res = await fetch(
+        `${OFF_SEARCH_V2}?q=${encodeURIComponent(trimmed)}&page_size=6&fields=code,product_name,brands`,
+        {
+          headers: { 'User-Agent': 'GreenLens-MVP/1.0 (Environmental Impact Assistant)' },
+          signal: AbortSignal.timeout(15000),
+        }
+      );
+      if (v2Res.ok) {
+        const v2Data = (await v2Res.json()) as { count?: number; products?: SearchHit[] };
+        rawProducts = v2Data.products ?? [];
+      }
+    }
+    const hits = parseSearchHits(rawProducts);
 
     const results = await Promise.all(
-      barcodes.map(async (barcode) => {
-        const parsed = await fetchProductByBarcode(barcode);
-        if (!parsed) return null;
-        return { ...parsed, barcode };
+      hits.map(async (hit) => {
+        try {
+          const parsed = await fetchProductByBarcode(hit.barcode);
+          if (parsed) return { ...parsed, barcode: hit.barcode };
+        } catch {
+          // Full fetch failed; return minimal product so user still sees search results
+        }
+        return {
+          name: hit.name,
+          brand: hit.brand,
+          category: null,
+          rawCategories: null,
+          imageUrl: null,
+          quantity: null,
+          packaging: null,
+          carbonFootprint: 0,
+          ecoScore: 'C',
+          nutriScore: null,
+          novaScore: null,
+          barcode: hit.barcode,
+        };
       })
     );
 
-    return results.filter((r): r is ParsedProduct & { barcode: string } => r !== null);
+    return results;
   } catch (err) {
     logger.error('Open Food Facts search failed', { query: trimmed, error: err });
     return [];
